@@ -13,7 +13,6 @@ import (
 	"syscall"
 
 	"github.com/gammazero/workerpool"
-	_ "github.com/ianlancetaylor/cgosymbolizer"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/diode"
 	"github.com/schollz/progressbar/v3"
@@ -106,15 +105,20 @@ func main() {
 	
 	//: Initilize Logger
 	NewLogger(loglevel)
+	//: init err var
+	var err error
+
 
 	// Initialize System Environemnt
 	//fmt.Println("[+] Initializing System Env")
-	var rLimit syscall.Rlimit
-	rLimit.Max = 999999
-	rLimit.Cur = 999999
-	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
-	if err != nil {
-		Logger.Error().Err(err).Msg("Cannot increase RLimit, you may encounter 'too many open files' issues")
+	if runtime.GOOS != "windows" {
+		var rLimit syscall.Rlimit
+		rLimit.Max = 999999
+		rLimit.Cur = 999999
+		err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
+		if err != nil {
+			Logger.Error().Err(err).Msg("Cannot increase RLimit, you may encounter 'too many open files' issues")
+		}
 	}
 
 	//: Initialize ctrl+c handler
